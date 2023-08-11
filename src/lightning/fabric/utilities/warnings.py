@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Warning-related utilities."""
-import warnings
 import textwrap
-from typing import Optional, Any, Type
+import warnings
+from typing import Any, Optional, Type
 
 from lightning.fabric.utilities.rank_zero import LightningDeprecationWarning
 
