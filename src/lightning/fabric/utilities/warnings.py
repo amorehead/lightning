@@ -13,6 +13,8 @@
 # limitations under the License.
 """Warning-related utilities."""
 import warnings
+import textwrap
+from typing import Optional, Any, Type
 
 from lightning.fabric.utilities.rank_zero import LightningDeprecationWarning
 
@@ -22,3 +24,13 @@ warnings.simplefilter("default", category=LightningDeprecationWarning)
 
 class PossibleUserWarning(UserWarning):
     """Warnings that could be false positives."""
+
+
+def _format_warning(warning: Warning, category: Type[Warning], filename: str, lineno: int, line: Optional[Any] = None) -> str:
+    lines = textwrap.wrap(f"{category.__name__}: {warning}", width=100)
+    message = "\n".join(lines)
+    message = textwrap.indent(message, prefix=" " * 4)
+    return f"{filename}:{lineno}:\n{message}\n"
+
+
+warnings.formatwarning = _format_warning
