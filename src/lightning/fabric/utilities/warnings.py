@@ -22,15 +22,49 @@ from lightning.fabric.utilities.rank_zero import LightningDeprecationWarning
 warnings.simplefilter("default", category=LightningDeprecationWarning)
 
 
-class PossibleUserWarning(UserWarning):
-    """Warnings that could be false positives."""
+def _format_warning_v1(
+    warning: Warning, category: Type[Warning], filename: str, lineno: int, line: Optional[Any] = None
+) -> str:
+    lines = textwrap.wrap(f"{warning}", width=100)
+    message = "\n".join(lines)
+    return f"{filename}:{lineno}: {category.__name__}: \n{message}\n"
 
 
-def _format_warning(warning: Warning, category: Type[Warning], filename: str, lineno: int, line: Optional[Any] = None) -> str:
+def _format_warning_v2(
+    warning: Warning, category: Type[Warning], filename: str, lineno: int, line: Optional[Any] = None
+) -> str:
+    lines = textwrap.wrap(f"{category.__name__}: {warning}", width=100)
+    message = "\n".join(lines)
+    return f"{filename}:{lineno}:\n{message}\n"
+
+
+def _format_warning_v3(
+    warning: Warning, category: Type[Warning], filename: str, lineno: int, line: Optional[Any] = None
+) -> str:
     lines = textwrap.wrap(f"{category.__name__}: {warning}", width=100)
     message = "\n".join(lines)
     message = textwrap.indent(message, prefix=" " * 4)
     return f"{filename}:{lineno}:\n{message}\n"
 
 
-warnings.formatwarning = _format_warning
+def _format_warning_v4(
+    warning: Warning, category: Type[Warning], filename: str, lineno: int, line: Optional[Any] = None
+) -> str:
+    return f"{filename}:{lineno}: {category.__name__}: {warning}\n"
+
+
+# Multi-line: Warning type on same line
+warnings.formatwarning = _format_warning_v1
+
+# Multi-line: Warning type on new line
+warnings.formatwarning = _format_warning_v2
+
+# Multi-line + indentation
+warnings.formatwarning = _format_warning_v3
+
+# Everything on a single line, but without the awkward `rank_zero_warn(` on a new line
+warnings.formatwarning = _format_warning_v4
+
+
+class PossibleUserWarning(UserWarning):
+    """Warnings that could be false positives."""
