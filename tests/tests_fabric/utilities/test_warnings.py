@@ -40,16 +40,16 @@ if __name__ == "__main__":
         cache.deprecation("test7")
 
     output = stderr.getvalue()
-    assert "test_warnings.py:30: UserWarning: test1" in output
-    assert "test_warnings.py:31: DeprecationWarning: test2" in output
+    assert "test_warnings.py:30: test1" in output
+    assert "test_warnings.py:31: test2" in output
 
-    assert "test_warnings.py:33: UserWarning: test3" in output
-    assert "test_warnings.py:34: DeprecationWarning: test4" in output
+    assert "test_warnings.py:33: test3" in output
+    assert "test_warnings.py:34: test4" in output
 
-    assert "test_warnings.py:36: LightningDeprecationWarning: test5" in output
+    assert "test_warnings.py:36: test5" in output
 
-    assert "test_warnings.py:39: UserWarning: test6" in output
-    assert "test_warnings.py:40: LightningDeprecationWarning: test7" in output
+    assert "test_warnings.py:39: test6" in output
+    assert "test_warnings.py:40: test7" in output
 
     # check that logging is properly configured
     import logging
