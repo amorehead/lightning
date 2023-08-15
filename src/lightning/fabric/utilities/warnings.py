@@ -31,8 +31,8 @@ def _wrap_formatwarning(default_format_warning: Callable) -> Callable:
     ) -> str:
         print(L.__file__, filename)  # FIXME: debug ci
 
-        prefix = os.path.commonprefix([filename, os.path.dirname(L.__file__)])
-        if prefix.endswith("lightning"):
+        common_path = os.path.commonpath([filename, os.path.dirname(L.__file__)])
+        if os.path.basename(common_path) == "lightning":
             # The warning originates from the Lightning package
             return f"{filename}:{lineno}: {message}\n"
         return default_format_warning(message, category, filename, lineno, line)
