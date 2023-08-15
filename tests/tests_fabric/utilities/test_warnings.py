@@ -53,6 +53,7 @@ if __name__ == "__main__":
 
     for ln in expected_lines:
         assert ln in output, f"Missing line {ln!r} in:\n{output}"
+        assert "rank_zero_warn(" not in output, "customized warning wrapper is not used"
 
     # check that logging is properly configured
     import logging
