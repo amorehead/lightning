@@ -15,7 +15,6 @@
 import os
 import warnings
 from functools import wraps
-from pathlib import Path
 from typing import Callable, Optional, Type, Union
 
 import lightning as L
