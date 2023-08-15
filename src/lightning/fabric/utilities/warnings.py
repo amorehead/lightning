@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Warning-related utilities."""
+import os
 import warnings
 from functools import wraps
 from pathlib import Path
@@ -30,7 +31,9 @@ def _wrap_formatwarning(default_format_warning: Callable) -> Callable:
     def wrapper(
         message: Union[Warning, str], category: Type[Warning], filename: str, lineno: int, line: Optional[str] = None
     ) -> str:
-        if Path(filename).is_relative_to(Path(L.__file__).parent):
+        print(L.__file__, filename)  # FIXME: debug ci
+
+        if str(Path(filename)).startswith(str(Path(L.__file__).parent)):
             # The warning originates from the Lightning package
             return f"{filename}:{lineno}: {message}\n"
         return default_format_warning(message, category, filename, lineno, line)
