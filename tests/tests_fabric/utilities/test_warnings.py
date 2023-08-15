@@ -18,9 +18,11 @@ Needs to be run outside of `pytest` as it captures all the warnings.
 """
 from contextlib import redirect_stderr
 from io import StringIO
+from pathlib import Path
 
 from lightning_utilities.core.rank_zero import _warn, WarningCache
 
+from lightning.fabric.utilities.warnings import _is_path_in_lightning
 from lightning.fabric.utilities.rank_zero import rank_zero_deprecation, rank_zero_warn
 
 if __name__ == "__main__":
@@ -82,3 +84,24 @@ if __name__ == "__main__":
 
     output = stderr.getvalue()
     assert output == "test2\n", repr(output)
+
+
+def test_is_path_in_lightning(monkeypatch):
+    monkeypatch.setattr("lightning.__file__", "/a/b/c/lightning/__init__.py")
+    assert _is_path_in_lightning(Path("/a/b/c/lightning"))
+    assert _is_path_in_lightning(Path("/a/b/c/lightning/core/lightning.py"))
+    assert _is_path_in_lightning(Path("/a/b/c/lightning/lightning"))
+    assert not _is_path_in_lightning(Path(""))
+    assert not _is_path_in_lightning(Path("/a/b/c/"))
+    assert not _is_path_in_lightning(Path("/a/b/lightning"))
+    assert not _is_path_in_lightning(Path("a/b/c/lightning"))
+
+    # Test Windows drive letters
+    assert not _is_path_in_lightning(Path("C:/a/b/c/lightning"))
+    monkeypatch.setattr("lightning.__file__", "C:/a/b/c/lightning/__init__.py")
+    assert _is_path_in_lightning(Path("C:/a/b/c/lightning"))
+    assert _is_path_in_lightning(Path("C:/a/b/c/lightning/core/lightning.py"))
+    assert _is_path_in_lightning(Path("C:/a/b/c/lightning/lightning"))
+    assert not _is_path_in_lightning(Path("/a/b/c/"))
+    assert not _is_path_in_lightning(Path("C:/a/b/c/"))
+    assert not _is_path_in_lightning(Path("D:/a/b/c/lightning"))  # drive letter mismatch
