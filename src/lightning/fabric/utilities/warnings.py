@@ -15,6 +15,7 @@
 import os
 import warnings
 from functools import wraps
+from pathlib import Path
 from typing import Callable, Optional, Type, Union
 
 import lightning as L
@@ -31,7 +32,7 @@ def _wrap_formatwarning(default_format_warning: Callable) -> Callable:
     ) -> str:
         print(L.__file__, filename)  # FIXME: debug ci
 
-        common_path = os.path.commonpath([filename, os.path.dirname(L.__file__)])
+        common_path = os.path.commonpath([Path(filename).absolute(), Path(L.__file__).parent.absolute()])
         if os.path.basename(common_path) == "lightning":
             # The warning originates from the Lightning package
             return f"{filename}:{lineno}: {message}\n"
