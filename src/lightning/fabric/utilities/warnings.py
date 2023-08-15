@@ -15,7 +15,7 @@
 import warnings
 from functools import wraps
 from pathlib import Path
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, Callable
 
 import lightning as L
 from lightning.fabric.utilities.rank_zero import LightningDeprecationWarning
@@ -24,7 +24,7 @@ from lightning.fabric.utilities.rank_zero import LightningDeprecationWarning
 warnings.simplefilter("default", category=LightningDeprecationWarning)
 
 
-def _wrap_formatwarning(default_format_warning: callable) -> callable:
+def _wrap_formatwarning(default_format_warning: Callable) -> Callable:
 
     @wraps(default_format_warning)
     def wrapper(
