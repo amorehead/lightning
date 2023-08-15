@@ -22,8 +22,8 @@ from pathlib import Path
 
 from lightning_utilities.core.rank_zero import _warn, WarningCache
 
-from lightning.fabric.utilities.warnings import _is_path_in_lightning
 from lightning.fabric.utilities.rank_zero import rank_zero_deprecation, rank_zero_warn
+from lightning.fabric.utilities.warnings import _is_path_in_lightning
 
 if __name__ == "__main__":
     stderr = StringIO()
