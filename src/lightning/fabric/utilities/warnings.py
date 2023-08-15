@@ -31,9 +31,7 @@ def _wrap_formatwarning(default_format_warning: Callable) -> Callable:
         message: Union[Warning, str], category: Type[Warning], filename: str, lineno: int, line: Optional[str] = None
     ) -> str:
         print(L.__file__, filename)  # FIXME: debug ci
-
-        common_path = Path(os.path.commonpath([Path(filename).absolute(), Path(L.__file__).parent.absolute()]))
-        if common_path.name == "lightning":
+        if _is_path_within_lightning(Path(filename)):
             # The warning originates from the Lightning package
             return f"{filename}:{lineno}: {message}\n"
         return default_format_warning(message, category, filename, lineno, line)
@@ -46,3 +44,13 @@ warnings.formatwarning = _wrap_formatwarning(warnings.formatwarning)
 
 class PossibleUserWarning(UserWarning):
     """Warnings that could be false positives."""
+
+
+def _is_path_within_lightning(path: Path) -> bool:
+    """Checks whether the given path is a subpath of the Lightning package."""
+    path = Path(path).absolute()
+    lightning_root = Path(L.__file__).parent.absolute()
+    if path.drive != lightning_root.drive:  # handle windows
+        return False
+    common_path = Path(os.path.commonpath([path, lightning_root]))
+    return common_path.name == "lightning"
