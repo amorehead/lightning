@@ -105,11 +105,11 @@ def test_is_path_in_lightning(monkeypatch):
 
     if sys.platform == "win32":
         # Test Windows drive letters
-        assert not _is_path_in_lightning(Path("C:/a/b/c/lightning"))
-        monkeypatch.setattr("lightning.__file__", "C:/a/b/c/lightning/__init__.py")
-        assert _is_path_in_lightning(Path("C:/a/b/c/lightning"))
-        assert _is_path_in_lightning(Path("C:/a/b/c/lightning/core/lightning.py"))
-        assert _is_path_in_lightning(Path("C:/a/b/c/lightning/lightning"))
-        assert not _is_path_in_lightning(Path("/a/b/c/"))
-        assert not _is_path_in_lightning(Path("C:/a/b/c/"))
-        assert not _is_path_in_lightning(Path("D:/a/b/c/lightning"))  # drive letter mismatch
+        assert not _is_path_in_lightning(Path(r"C:\a\b\c\lightning"))
+        monkeypatch.setattr("lightning.__file__", r"C:\a\b\c\lightning\__init__.py")
+        assert _is_path_in_lightning(Path(r"C:\a\b\c\lightning"))
+        assert _is_path_in_lightning(Path(r"C:\a\b\c\lightning\core\lightning.py"))
+        assert _is_path_in_lightning(Path(r"C:\a\b\c\lightning\lightning"))
+        assert not _is_path_in_lightning(Path(r"\a\b\c"))
+        assert not _is_path_in_lightning(Path(r"C:\a\b\c"))
+        assert not _is_path_in_lightning(Path(r"D:\a\b\c\lightning"))  # drive letter mismatch
