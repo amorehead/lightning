@@ -24,6 +24,35 @@ from tests_fabric.helpers.models import RandomDataset
 from tests_fabric.helpers.runif import RunIf
 
 
+def _xla_fsdp_rewrap_warning(fabric: Fabric):
+    """Fabric launch function for test_xla_fsdp_rewrap_warning."""
+    from torch_xla.distributed.fsdp.xla_fully_sharded_data_parallel import XlaFullyShardedDataParallel
+
+    with fabric.init_module():
+        model = torch.nn.Sequential(
+            torch.nn.Linear(1, 1), torch.nn.ReLU(), XlaFullyShardedDataParallel(torch.nn.Linear(1, 1))
+        )
+    if fabric.node_rank:
+        with pytest.warns(match="submodule is already wrapped"):
+            model = fabric.setup_module(model)
+    else:
+        model = fabric.setup_module(model)
+    fabric.barrier("warning_check")
+    assert not isinstance(model._forward_module[0], XlaFullyShardedDataParallel)
+    assert not isinstance(model._forward_module[1], XlaFullyShardedDataParallel)
+    assert isinstance(model._forward_module[2], XlaFullyShardedDataParallel)
+
+
+@RunIf(min_torch="2.0", tpu=True, standalone=True)
+def test_xla_fsdp_rewrap_warning():
+    """Test that XLAFSDP warns about rewrapping the modules."""
+    from torch_xla.distributed.fsdp.wrap import always_wrap_policy
+
+    strategy = XLAFSDPStrategy(auto_wrap_policy=always_wrap_policy)
+    fabric = Fabric(accelerator="tpu", strategy=strategy)
+    fabric.launch(_xla_fsdp_rewrap_warning)
+
+
 def xla_fsdp_train_save_load(fabric: Fabric, tmp_path, state_dict_type):
     """Fabric launch function for test_xla_fsdp_train_save_load."""
     # check if multihost
@@ -123,14 +152,24 @@ def xla_fsdp_train_save_load(fabric: Fabric, tmp_path, state_dict_type):
 
 
 @RunIf(min_torch="2.0", tpu=True, standalone=True)
-@pytest.mark.parametrize("use_auto_wrap_policy", [False, True])
-@pytest.mark.parametrize("state_dict_type", ["sharded", "full"])
-def test_xla_fsdp_train_save_load(tmp_path, use_auto_wrap_policy, state_dict_type):
+@pytest.mark.parametrize(
+    ("use_auto_wrap_policy", "state_dict_type", "sequential_save"),
+    [
+        (False, "sharded", False),
+        (False, "full", False),
+        (False, "full", True),
+        (True, "sharded", False),
+        (True, "full", False),
+    ],
+)
+def test_xla_fsdp_train_save_load(tmp_path, use_auto_wrap_policy, state_dict_type, sequential_save):
     """Test XLAFSDP training, saving and loading checkpoint (both full and sharded)."""
     from torch_xla.distributed.fsdp.wrap import always_wrap_policy
 
     strategy = XLAFSDPStrategy(
-        auto_wrap_policy=always_wrap_policy if use_auto_wrap_policy else None, state_dict_type=state_dict_type
+        auto_wrap_policy=always_wrap_policy if use_auto_wrap_policy else None,
+        state_dict_type=state_dict_type,
+        sequential_save=sequential_save,
     )
     fabric = Fabric(accelerator="tpu", strategy=strategy)
     fabric.launch(xla_fsdp_train_save_load, tmp_path, state_dict_type)
