@@ -18,7 +18,6 @@ from functools import wraps
 from pathlib import Path
 from typing import Callable, Optional, Type, Union
 
-import lightning as L
 from lightning.fabric.utilities.rank_zero import LightningDeprecationWarning
 
 # enable our warnings
@@ -30,7 +29,7 @@ def _wrap_formatwarning(default_format_warning: Callable) -> Callable:
     def wrapper(
         message: Union[Warning, str], category: Type[Warning], filename: str, lineno: int, line: Optional[str] = None
     ) -> str:
-        print(L.__file__, filename)  # FIXME: debug ci
+        # print(L.__file__, filename)  # FIXME: debug ci
         if _is_path_in_lightning(Path(filename)):
             # The warning originates from the Lightning package
             return f"{filename}:{lineno}: {message}\n"
@@ -49,6 +48,17 @@ class PossibleUserWarning(UserWarning):
 def _is_path_in_lightning(path: Path) -> bool:
     """Checks whether the given path is a subpath of the Lightning package."""
     path = Path(path).absolute()
+
+    # insane hack to support package name substitution *eyes rolling*
+    if "lightning.pytorch" == "pytorch_lightning":
+        import pytorch_lightning as L
+    elif "lightning.fabric" == "lightning_fabric":
+        import lightning_fabric as L
+    elif "lightning.app" == "lightning_app":
+        import lightning_app as L
+    else:
+        import lightning as L
+
     lightning_root = Path(L.__file__).parent.absolute()
     if path.drive != lightning_root.drive:  # handle windows
         return False
